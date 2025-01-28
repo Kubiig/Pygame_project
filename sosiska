@@ -71,30 +71,32 @@ class Player:
         # collision with platforms
         global platforms_group
         dy = self.gravity
-        for platform in platforms_group:
-            if platform.rect.colliderect(self.rect.x, self.rect.y + dy, 60, 60):
-                if platform.type == 'Brown':
-                    image = pygame.image.load('Broken.png').convert_alpha()
-                    if self.rect.bottom < platform.rect.centery:
-                        if self.gravity > 0:
-                            platform.image = pygame.transform.scale(image, (80, 20))
+        s = 0
+        collision = False
 
+        for platform in platforms_group:
+
+            if platform.rect.colliderect(self.rect.x, self.rect.y + dy, 60, 60):
+                if self.rect.bottom <= platform.rect.centery:
+                    if self.gravity > 0:
+                        collision = True
+                        self.jump_sound.play()
+                        dy = 0
+                        self.gravity = -20
+
+                        # Handle broken platform logic
+                        if platform.type == 'Brown':
+                            image = pygame.image.load('Broken.png').convert_alpha()
+                            platform.image = pygame.transform.scale(image, (80, 20))
                             type = random.randint(0, 2)
-                            x = random.randint(0, 320)
+                            x = random.randint(0, 3)
                             y = -800 / max_platforms
                             image_name = images[type]
                             platform_type = platform_types[type]
                             platforms_group.add(Platform(x, y, image_name, platform_type))
                             platform.kill()
-                else:
-                    if self.rect.bottom <= platform.rect.centery:
-                        if self.gravity > 0:
-                            self.jump_sound.play()
-                            # self.rect.bottom = platform.rect.top
-                            dy = 0
-                            self.gravity = -20
+
         # s stands for scroll
-        s = 0
         if self.rect.y <= 500:
             if self.gravity < 0:
                 s = -dy
@@ -139,7 +141,7 @@ class Player:
         self.move()
         self.apply_gravity()
         self.fire()
-        self.draw(screen)
+        # self.draw(screen) - отрисовка перенесена в основной цикл
         self.rect.y += scroll
         if self.score < self.score - self.gravity and self.gravity < 0:
             self.score -= self.gravity
@@ -415,7 +417,7 @@ if __name__ == "__main__":
                         start_time = int(pygame.time.get_ticks() / 1000)
                     platforms_characteritics = []
                     platforms_group = pygame.sprite.Group()
-                    rocket_index = random.randint(max_platforms, 2*max_platforms)
+                    rocket_index = random.randint(max_platforms, 2 * max_platforms)
 
                     type = np.random.randint(0, 3, 2 * max_platforms)
                     x = np.random.randint(0, 320, 2 * max_platforms)
@@ -439,23 +441,29 @@ if __name__ == "__main__":
                     loaded = False
 
         if game_active and pause == False:
+            # Отрисовка фона каждый кадр
             draw_background()
             score = display_score()
-            player.draw(screen)
-            platforms_group.draw(screen)
+
+            # Вызов update для player и спрайтов
             scroll = player.collisions()
             player.update(scroll)
+            platforms_group.update(scroll)
+            monsters.update()
+            bullets.update()
+            boosters.update()
             floor_collision()
 
-            platforms_group.update(scroll)
+            # Отрисовка спрайтов после обновления
+            player.draw(screen)
+            platforms_group.draw(screen)
             monsters.draw(screen)
-            monsters.update()
+            bullets.draw(screen)
+            boosters.draw(screen)
+
             update_platforms()
             spawn_monsters()
-            bullets.draw(screen)
-            bullets.update()
-            boosters.draw(screen)
-            boosters.update()
+
             catch_pause()
         else:
             start_time = int(pygame.time.get_ticks())
