@@ -2,3 +2,4 @@
 13.12.2024
 Название проекта pygame_project
 Идея проекта заключается в создании doodle jump, с использованием бибилиотеки PyGame.
+Скачать Pygame_project-Geometry-Jump
